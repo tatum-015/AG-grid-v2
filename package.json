@@ -1,0 +1,32 @@
+{
+  "name": "ag-grid-v2-stackblitz",
+  "private": false,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "AG Grid v2 - CSV Data Visualization Platform with Enhanced Status Chips",
+  "keywords": ["vue3", "ag-grid", "csv", "data-visualization", "typescript", "primevue"],
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.4.0",
+    "vue-router": "^4.2.5",
+    "pinia": "^2.1.7",
+    "ag-grid-community": "^32.0.0",
+    "ag-grid-enterprise": "^32.0.0",
+    "ag-grid-vue3": "^32.0.0",
+    "primevue": "^3.50.0",
+    "primeicons": "^6.0.1",
+    "papaparse": "^5.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/papaparse": "^5.3.14",
+    "@vitejs/plugin-vue": "^5.0.0",
+    "typescript": "~5.3.0",
+    "vite": "^5.0.0",
+    "vue-tsc": "^1.8.25"
+  }
+}

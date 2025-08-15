@@ -1,0 +1,136 @@
+/* Import Google Fonts - Archivo for RiskHub */
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;500;600;700&display=swap');
+
+/* Import PrimeVue theme */
+@import 'primevue/resources/themes/saga-blue/theme.css';
+@import 'primevue/resources/primevue.min.css';
+@import 'primeicons/primeicons.css';
+
+/* Import AG-Grid theme */
+@import 'ag-grid-community/styles/ag-grid.css';
+@import 'ag-grid-community/styles/ag-theme-alpine.css';
+
+/* Brand Color System */
+:root {
+  /* Primary Brand Colors */
+  --brand-charcoal: #202228;
+  --brand-gold: #957610;
+  --brand-off-white: #fefdfc;
+  
+  /* Core Accent Color */
+  --brand-accent: #245dff;
+  
+  /* Primary Color Scale */
+  --primary-50: #909194;
+  --primary-100: #797a7e;
+  --primary-200: #636469;
+  --primary-300: #4d4e53;
+  --primary-400: #36383e;
+  --primary-500: #202228;
+  --primary-600: #1d1f24;
+  --primary-700: #1a1b20;
+  --primary-800: #16181c;
+  --primary-900: #131418;
+  --primary-950: #0e0f12;
+  
+  /* Blue Color Scale */
+  --blue-50: #e3eeff;
+  --blue-100: #c5c5ff;
+  --blue-200: #a7d8ff;
+  --blue-300: #7d98ff;
+  --blue-400: #4176ff;
+  --blue-500: #245dff;
+  --blue-600: #1e4dd4;
+  --blue-700: #183daa;
+  --blue-800: #122a80;
+  --blue-900: #0c1655;
+  --blue-950: #06062a;
+  
+  /* Neutral Color Scale */
+  --slate-50: #f8fafb;
+  --slate-100: #f2f5f8;
+  --slate-200: #e5ebf1;
+  --slate-300: #d7e0e9;
+  --slate-400: #cad6e2;
+  --slate-500: #bdccdb;
+  --slate-600: #97a3af;
+  --slate-700: #717a83;
+  --slate-800: #4c5258;
+  --slate-900: #26292c;
+  --slate-950: #131416;
+  
+  /* Green Color Scale */
+  --green-50: #ebfffb;
+  --green-100: #c0f3dc;
+  --green-200: #90e0c0;
+  --green-300: #60e2a3;
+  --green-400: #30d987;
+  --green-500: #00ce72;
+  --green-600: #00ab5f;
+  --green-700: #00894c;
+  --green-800: #006739;
+  --green-900: #00341d;
+  --green-950: #001a0f;
+  
+  /* Text Colors */
+  --text-primary: var(--brand-charcoal);
+  --text-secondary: var(--primary-300);
+  --text-muted: var(--slate-500);
+  --text-inverse: var(--brand-off-white);
+  
+  /* Background Colors */
+  --bg-primary: var(--brand-off-white);
+  --bg-secondary: var(--slate-50);
+  --bg-muted: var(--slate-100);
+  --bg-dark: var(--brand-charcoal);
+  
+  /* Border Colors */
+  --border-primary: var(--slate-200);
+  --border-secondary: var(--slate-300);
+  --border-accent: var(--brand-accent);
+  
+  /* Shadow */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-full: 9999px;
+}
+
+/* PrimeVue CSS Variable Overrides */
+:root {
+  --primary-color: var(--brand-accent);
+  --primary-color-text: var(--brand-off-white);
+  --surface-0: var(--bg-primary);
+  --surface-50: var(--slate-50);
+  --surface-100: var(--slate-100);
+  --surface-200: var(--slate-200);
+  --surface-300: var(--slate-300);
+  --surface-400: var(--slate-400);
+  --surface-500: var(--slate-500);
+  --text-color: var(--text-primary);
+  --text-color-secondary: var(--text-secondary);
+}
+
+/* Global styles */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+#app {
+  min-height: 100vh;
+}

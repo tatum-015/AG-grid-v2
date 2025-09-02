@@ -18,94 +18,51 @@ export function convertCsvToTreeData(
   const generateId = () => `node_${++nodeIdCounter}`
 
   csvData.forEach((row, rowIndex) => {
-    // Build hierarchy path from the selected columns
+    // Build hierarchy path from the selected columns, filtering out empty/null/"-" values
     const hierarchyPath = hierarchyColumns
       .map(col => row[col])
-      .filter(val => val != null && val !== '')
+      .filter(val => val != null && val !== '' && val !== '-')
       .map(val => String(val).trim())
 
     if (hierarchyPath.length === 0) return
 
-    // Create nodes for each level in the hierarchy
+    // Create nodes for each level in the hierarchy, ending at the deepest level
     for (let level = 0; level < hierarchyPath.length; level++) {
       const currentPath = hierarchyPath.slice(0, level + 1)
-      const pathKey = currentPath.join(' > ')
+      const pathKey = currentPath.join('|')
+      const isLeaf = level === hierarchyPath.length - 1 // Last level is the actual data record
       
       if (!nodeMap.has(pathKey)) {
-        const isLeaf = false // These are group nodes
         const nodeId = generateId()
         
-        // Extract data for this node
-        const nodeData: any = {}
+        // Each node contains ALL the data from the row
+        const nodeData: any = {
+          id: nodeId,
+          name: currentPath[currentPath.length - 1],
+          hierarchyPath: currentPath, // This is what getDataPath will return
+          level: `Level ${level + 1}`,
+          nodeType: isLeaf ? 'leaf' : 'group',
+          isLeaf: isLeaf
+        }
         
-        // Add hierarchy column data
-        hierarchyColumns.forEach((col, index) => {
-          if (index <= level) {
+        // Add ALL data columns to every node - this makes parent nodes show data
+        dataColumns.forEach(col => {
+          if (row[col] !== undefined) {
             nodeData[col] = row[col]
           }
         })
 
-        const node: TreeNode = {
-          id: nodeId,
-          hierarchyPath: currentPath,
-          name: currentPath[currentPath.length - 1],
-          level: `Level ${level + 1}`,
-          isLeaf,
-          nodeType: 'group',
-          childCount: undefined,
-          ...nodeData
-        }
-
-        nodeMap.set(pathKey, node)
-        treeNodes.push(node)
+        nodeMap.set(pathKey, nodeData)
+        treeNodes.push(nodeData)
+      } else if (!isLeaf) {
+        // For non-leaf existing nodes, update with additional data if missing
+        const existingNode = nodeMap.get(pathKey)
+        dataColumns.forEach(col => {
+          if (row[col] !== undefined && existingNode[col] === undefined) {
+            existingNode[col] = row[col]
+          }
+        })
       }
-    }
-    
-    // Create individual record node for each CSV row
-    const recordId = row['Assessment ID'] || row['UPRN'] || `record_${rowIndex}`
-    const recordPath = [...hierarchyPath, recordId]
-    const recordPathKey = recordPath.join(' > ')
-    
-    if (!nodeMap.has(recordPathKey)) {
-      const nodeId = generateId()
-      
-      // Add all data columns for the individual record
-      const nodeData: any = {}
-      dataColumns.forEach(col => {
-        if (row[col] !== undefined) {
-          nodeData[col] = row[col]
-        }
-      })
-      
-      const recordNode: TreeNode = {
-        id: nodeId,
-        hierarchyPath: recordPath,
-        name: recordId,
-        level: `Level ${hierarchyPath.length + 1}`,
-        isLeaf: true,
-        nodeType: 'leaf',
-        childCount: 0,
-        ...nodeData
-      }
-      
-      nodeMap.set(recordPathKey, recordNode)
-      treeNodes.push(recordNode)
-    }
-  })
-
-  // Calculate child counts for group nodes
-  const sortedNodes = Array.from(nodeMap.values()).sort((a, b) => 
-    a.hierarchyPath.length - b.hierarchyPath.length
-  )
-
-  sortedNodes.forEach(node => {
-    if (!node.isLeaf) {
-      const childNodes = sortedNodes.filter(child => 
-        child.hierarchyPath.length === node.hierarchyPath.length + 1 &&
-        child.hierarchyPath.slice(0, node.hierarchyPath.length).join(' > ') === 
-        node.hierarchyPath.join(' > ')
-      )
-      node.childCount = childNodes.length
     }
   })
 
@@ -123,36 +80,72 @@ export function generateSampleData(): any[] {
       'Block': 'Nelson Block',
       'Core': 'Core A',
       'Property': 'Flat 101',
-      'PropertyUPRN': 'EST001',
-      'Level': 'Estate (L1)',
-      'PropertyType': 'Estate'
+      'PropertyUPRN': 'FLT101',
+      'Assessment ID': 'ASM001',
+      'Assessment Type': 'Fire Risk Assessment',
+      'Assessment Status': 'Completed',
+      'Risk Rating': 'Low',
+      'Tenure': 'Council'
     },
     {
       'Estate': 'Southwark Estate',
       'Block': 'Nelson Block',
       'Core': 'Core A',
       'Property': 'Flat 102',
-      'PropertyUPRN': 'BLK001',
-      'Level': 'Block (L2)',
-      'PropertyType': 'Block'
+      'PropertyUPRN': 'FLT102',
+      'Assessment ID': 'ASM002',
+      'Assessment Type': 'Fire Risk Assessment',
+      'Assessment Status': 'In Progress',
+      'Risk Rating': 'Medium',
+      'Tenure': 'Leasehold'
     },
     {
       'Estate': 'Southwark Estate',
       'Block': 'Nelson Block',
       'Core': 'Core B',
       'Property': 'Flat 201',
-      'PropertyUPRN': 'COR001',
-      'Level': 'Core (L3)',
-      'PropertyType': 'Core'
+      'PropertyUPRN': 'FLT201',
+      'Assessment ID': 'ASM003',
+      'Assessment Type': 'Fire Risk Assessment',
+      'Assessment Status': 'Completed',
+      'Risk Rating': 'High',
+      'Tenure': 'Council'
     },
     {
       'Estate': 'Southwark Estate',
       'Block': 'Wellington Block',
       'Core': 'Core C',
       'Property': 'Flat 301',
-      'PropertyUPRN': 'FLT101',
-      'Level': 'Flat (L4)',
-      'PropertyType': 'Flat'
+      'PropertyUPRN': 'FLT301',
+      'Assessment ID': 'ASM004',
+      'Assessment Type': 'Electrical Safety Check',
+      'Assessment Status': 'Pending',
+      'Risk Rating': 'Low',
+      'Tenure': 'Leasehold'
+    },
+    {
+      'Estate': 'Southwark Estate',
+      'Block': 'Wellington Block',
+      'Core': 'Core C',
+      'Property': 'Flat 302',
+      'PropertyUPRN': 'FLT302',
+      'Assessment ID': 'ASM005',
+      'Assessment Type': 'Electrical Safety Check',
+      'Assessment Status': 'Completed',
+      'Risk Rating': 'Medium',
+      'Tenure': 'Council'
+    },
+    {
+      'Estate': 'Camden Estate',
+      'Block': 'Camden Block A',
+      'Core': 'Core D',
+      'Property': 'Flat 401',
+      'PropertyUPRN': 'FLT401',
+      'Assessment ID': 'ASM006',
+      'Assessment Type': 'Gas Safety Check',
+      'Assessment Status': 'Completed',
+      'Risk Rating': 'Low',
+      'Tenure': 'Council'
     }
   ]
 }
@@ -171,38 +164,36 @@ export function convertSingleHierarchyColumn(
 
   csvData.forEach((row, rowIndex) => {
     const hierarchyValue = row[hierarchyColumnName]
-    if (!hierarchyValue) return
+    if (!hierarchyValue || hierarchyValue === '-') return
 
-    // For single hierarchy column, treat each unique value as a separate group
-    const pathKey = String(hierarchyValue).trim()
+    const hierarchyString = String(hierarchyValue).trim()
     
-    if (!nodeMap.has(pathKey)) {
+    // Create/update the group node - this IS the data record, not just a parent
+    const groupPathKey = hierarchyString
+    if (!nodeMap.has(groupPathKey)) {
       const nodeId = generateId()
       
-      // Count how many rows have this hierarchy value
-      const childCount = csvData.filter(r => r[hierarchyColumnName] === hierarchyValue).length
-      
-      const node: TreeNode = {
+      const groupNode: any = {
         id: nodeId,
-        hierarchyPath: [pathKey],
-        name: pathKey,
+        hierarchyPath: [hierarchyString], // Tree data path
+        name: hierarchyString,
         level: `Level 1`,
-        isLeaf: false,
-        nodeType: 'group',
-        childCount: childCount,
+        isLeaf: true, // This is now the actual data record
+        nodeType: 'leaf',
         [hierarchyColumnName]: hierarchyValue
       }
 
-      // Add additional column data
+      // Add all additional column data
       additionalColumns.forEach(col => {
-        if (col !== hierarchyColumnName && row[col] !== undefined) {
-          node[col] = row[col]
+        if (row[col] !== undefined) {
+          groupNode[col] = row[col]
         }
       })
 
-      nodeMap.set(pathKey, node)
-      treeNodes.push(node)
+      nodeMap.set(groupPathKey, groupNode)
+      treeNodes.push(groupNode)
     }
+    // Note: We don't create separate leaf nodes anymore - the hierarchy level IS the data record
   })
 
   return Array.from(nodeMap.values())
@@ -222,77 +213,51 @@ export function convertUPRNToHierarchy(
 
   csvData.forEach((row, rowIndex) => {
     const uprnValue = row[uprnColumnName]
-    const assessmentType = row['Assessment Type']
-    const assessmentId = row['Assessment ID']
     
-    if (!uprnValue) return
+    if (!uprnValue || uprnValue === '-') return
 
     // Parse UPRN like "CG-EST-BLKQ-C001" into hierarchy levels
     const parts = String(uprnValue).split('-').filter(part => part.trim())
     
     if (parts.length === 0) return
 
-    // Create hierarchy: UPRN parts -> Assessment Type -> Individual Assessment Records
-    const fullHierarchy = [...parts]
-    
-    // Add Assessment Type as next level if available
-    if (assessmentType) {
-      fullHierarchy.push(assessmentType)
-    }
-    
-    // Add individual assessment record if Assessment ID is available
-    if (assessmentId) {
-      fullHierarchy.push(assessmentId)
-    }
-
-    // Create nodes for each level in the full hierarchy
-    for (let level = 0; level < fullHierarchy.length; level++) {
-      const currentPath = fullHierarchy.slice(0, level + 1)
-      const pathKey = currentPath.join(' > ')
+    // Create nodes for each level in the UPRN hierarchy - each part is a level
+    for (let level = 0; level < parts.length; level++) {
+      const currentPath = parts.slice(0, level + 1)
+      const pathKey = currentPath.join('|')
+      const isLeaf = level === parts.length - 1 // Last level is the actual data record
       
       if (!nodeMap.has(pathKey)) {
-        const isLeaf = level === fullHierarchy.length - 1
         const nodeId = generateId()
         
-        const node: TreeNode = {
+        const node: any = {
           id: nodeId,
-          hierarchyPath: currentPath,
+          hierarchyPath: currentPath, // Tree data path
           name: currentPath[currentPath.length - 1],
           level: `Level ${level + 1}`,
-          isLeaf,
+          isLeaf: isLeaf,
           nodeType: isLeaf ? 'leaf' : 'group',
-          childCount: isLeaf ? 0 : undefined,
           originalUPRN: uprnValue
         }
 
-        // For leaf nodes (individual assessment records), add all row data
-        if (isLeaf && assessmentId) {
-          additionalColumns.forEach(col => {
-            if (row[col] !== undefined) {
-              node[col] = row[col]
-            }
-          })
-        }
+        // Add all additional column data to every node
+        additionalColumns.forEach(col => {
+          if (row[col] !== undefined) {
+            node[col] = row[col]
+          }
+        })
 
         nodeMap.set(pathKey, node)
         treeNodes.push(node)
+      } else if (!isLeaf) {
+        // Update existing non-leaf node with additional data if missing
+        const existingNode = nodeMap.get(pathKey)
+        additionalColumns.forEach(col => {
+          if (row[col] !== undefined && existingNode[col] === undefined) {
+            existingNode[col] = row[col]
+          }
+        })
       }
-    }
-  })
-
-  // Calculate child counts for group nodes
-  const sortedNodes = Array.from(nodeMap.values()).sort((a, b) => 
-    a.hierarchyPath.length - b.hierarchyPath.length
-  )
-
-  sortedNodes.forEach(node => {
-    if (!node.isLeaf) {
-      const childNodes = sortedNodes.filter(child => 
-        child.hierarchyPath.length === node.hierarchyPath.length + 1 &&
-        child.hierarchyPath.slice(0, node.hierarchyPath.length).join(' > ') === 
-        node.hierarchyPath.join(' > ')
-      )
-      node.childCount = childNodes.length
     }
   })
 

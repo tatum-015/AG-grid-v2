@@ -359,35 +359,57 @@ function updateTreeModeGrid() {
   
   console.log('Generated tree data:', treeData.slice(0, 3))
   
-  // Configure for tree data mode
+  // Clear existing configuration completely first
+  gridApi.setGridOption('rowData', [])
+  gridApi.setGridOption('columnDefs', [])
+  
+  // Reset all row grouping settings to ensure clean tree data mode
+  gridApi.setGridOption('rowGroupPanelShow', 'never')
+  gridApi.setGridOption('groupDisplayType', undefined)
+  
+  // Configure PURE tree data mode (no row grouping)
   gridApi.setGridOption('treeData', true)
   gridApi.setGridOption('getDataPath', getDataPath)
   gridApi.setGridOption('groupDefaultExpanded', 1)
+  
+  // Configure the auto-group column for tree data display
   gridApi.setGridOption('autoGroupColumnDef', {
     headerName: "Property Hierarchy",
     field: "name",
+    minWidth: 300,
+    flex: 1,
     cellRenderer: 'agGroupCellRenderer',
     cellRendererParams: {
       suppressCount: false,
       checkbox: true,
+      suppressDoubleClickExpand: false,
+      suppressEnterExpand: false,
       innerRenderer: (params: any) => {
         if (params.data) {
-          const node = params.data
-          const count = node.childCount > 0 ? ` (${node.childCount})` : ''
-          return `${node.name}${count}`
+          // For tree data, just display the node name
+          return params.data.name || params.value || ''
         }
         return ''
       }
-    },
-    width: 400
+    }
   })
   
-  // Create dynamic column definitions based on available data
-  const dynamicColumns = createTreeModeColumns()
+  // Create column definitions for tree data (without row grouping properties)
+  const treeColumns = createTreeModeColumns()
   
+  console.log('Setting tree data with', treeData.length, 'nodes')
+  console.log('Setting column definitions:', treeColumns.length, 'columns')
+  
+  // Apply configuration in sequence
   dataStore.setTreeData(treeData)
-  gridApi.setGridOption('columnDefs', dynamicColumns)
-  gridApi.setGridOption('rowData', treeData)
+  gridApi.setGridOption('columnDefs', treeColumns)
+  
+  // Set data after configuration is complete
+  setTimeout(() => {
+    if (!gridApi) return
+    gridApi.setGridOption('rowData', treeData)
+    console.log('Tree mode grid updated successfully')
+  }, 100)
 }
 
 function updateRowGroupingModeGrid() {
@@ -453,21 +475,19 @@ function createTreeModeColumns() {
   
   const columns: any[] = []
   
-  // Checkbox is handled by autoGroupColumnDef - no separate column needed
-  
-  // Get all columns that should be displayed (exclude only hierarchy columns)
+  // Get all columns that should be displayed (exclude hierarchy columns)
   const excludedColumns = [...dataStore.hierarchyColumns]
   
-  const nonHierarchyColumns = dataStore.csvColumns.filter(col => 
+  const displayColumns = dataStore.csvColumns.filter(col => 
     !excludedColumns.includes(col.key)
   )
   
   console.log('All CSV columns:', dataStore.csvColumns.map(c => c.key))
   console.log('Hierarchy columns (excluded):', excludedColumns)
-  console.log('Columns to display:', nonHierarchyColumns.map(c => c.key))
+  console.log('Columns to display:', displayColumns.map(c => c.key))
   
-  // Add ALL non-hierarchy columns dynamically
-  nonHierarchyColumns.forEach(column => {
+  // Create column definitions for tree data (NO row grouping properties)
+  displayColumns.forEach(column => {
     const isLegacyChipColumn = dataStore.chipColumnConfig.enabled && 
                               dataStore.chipColumnConfig.columnKey === column.key
     const multiChipConfig = dataStore.getChipConfig(column.key)
@@ -477,7 +497,12 @@ function createTreeModeColumns() {
       headerName: column.label,
       field: column.key,
       width: getColumnWidth(column.key),
+      sortable: true,
+      filter: true,
+      resizable: true,
       cellClass: (isLegacyChipColumn || isMultiChipColumn) ? 'chip-cell' : '',
+      // NO rowGroup property - this is key for tree data
+      // NO hide property - all columns should be visible
       cellRenderer: (params: any) => {
         const value = params.data?.[column.key] || ''
         

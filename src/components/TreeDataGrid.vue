@@ -113,7 +113,7 @@
       v-model:visible="showUploadModal" 
       header="Upload New CSV File" 
       :modal="true" 
-      :style="{ width: '500px' }"
+      :style="{ width: '650px' }"
       :closable="true"
     >
       <CsvUploadModal @file-uploaded="onFileUploaded" @close="showUploadModal = false" />

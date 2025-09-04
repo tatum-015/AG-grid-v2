@@ -380,14 +380,42 @@ function updateTreeModeGrid() {
     flex: 1,
     cellRenderer: 'agGroupCellRenderer',
     cellRendererParams: {
-      suppressCount: false,
+      suppressCount: true, // We'll render custom count
       checkbox: true,
       suppressDoubleClickExpand: false,
       suppressEnterExpand: false,
       innerRenderer: (params: any) => {
         if (params.data) {
-          // For tree data, just display the node name
-          return params.data.name || params.value || ''
+          const nodeName = params.data.name || params.value || ''
+          
+          // Only show count for group nodes (non-leaf nodes)
+          if (params.node.group) {
+            // Get direct children count (immediate children)
+            const directChildrenCount = params.node.childrenAfterGroup?.length || 0
+            // Get total descendants count (all leaf children)
+            const totalDescendantsCount = params.node.allLeafChildren?.length || 0
+            
+            if (directChildrenCount > 0) {
+              // Create container element
+              const container = document.createElement('span')
+              
+              // Create medium weight label
+              const labelSpan = document.createElement('span')
+              labelSpan.textContent = nodeName + ' '
+              labelSpan.style.cssText = 'font-weight: 500;'
+              
+              // Create grey count text
+              const countSpan = document.createElement('span')
+              countSpan.textContent = `(${directChildrenCount} out of ${totalDescendantsCount})`
+              countSpan.style.cssText = 'color: #6c757d;'
+              
+              container.appendChild(labelSpan)
+              container.appendChild(countSpan)
+              return container
+            }
+          }
+          
+          return nodeName
         }
         return ''
       }
